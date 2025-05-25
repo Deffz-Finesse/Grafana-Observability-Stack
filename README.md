@@ -133,8 +133,8 @@ docker-compose logs -f     # View logs if needed
 ```promql
 # Example Prometheus queries
 up                                  # Service health
-rate(http_requests_total[5m])      # Request rate
-prometheus_tsdb_head_series        # Metric count
+rate(http_requests_total[5m])       # Request rate
+prometheus_tsdb_head_series         # Metric count
 ```
 
 ### Querying Logs
@@ -142,7 +142,7 @@ prometheus_tsdb_head_series        # Metric count
 ```logql
 {container="app"}                    # Logs from app container
 {level="error"}                      # Error-level logs
-{service="api"} |= "timeout"        # API logs containing "timeout"
+{service="api"} |= "timeout"         # API logs containing "timeout"
 ```
 
 ### Exploring Traces
