@@ -1,0 +1,39 @@
+## observability/loki/loki-config.yml
+
+
+# This YAML file defines the configuration for a Loki logging instance.
+#
+# Key sections:
+# - auth_enabled: Controls authentication (disabled by default).
+# - server: Configures Loki's HTTP server (e.g., listening port).
+# - common: Shared settings like storage paths, logging level, and ring configuration.
+# - schema_config: Defines how logs are indexed and stored over time.
+# - storage_config: Specifies where Loki should persist its log data.
+# - log_level/log_format: Controls internal Loki logging output.
+
+auth_enabled: false                               # Disable authentication for Loki HTTP API
+
+server:
+  http_listen_port: 3100                          # Loki API will listen on this port
+
+common:
+  ring:
+    instance_addr: 127.0.0.1                      # Unique address of this Loki instance in the ring
+    kvstore:
+      store: inmemory                             # Use in-memory key-value store for single-node deployments
+  replication_factor: 1                           # No replication (single instance setup)
+  path_prefix: /tmp/loki                          # Base directory for storing index and chunk data
+
+schema_config:
+  configs:
+    - from: 2020-05-15                             # Apply this schema starting from this date
+      store: tsdb                                  # Use TSDB (time-series database) to store logs
+      object_store: filesystem                     # Store logs on the local file system
+      schema: v11                                  # Schema version used by Loki
+      index:
+        prefix: index_                             # Prefix for index files
+        period: 24h                                # Rotate index every 24 hours
+
+storage_config:
+  filesystem:
+    directory: /tmp/loki/chunks                   # Directory to store chunked log data

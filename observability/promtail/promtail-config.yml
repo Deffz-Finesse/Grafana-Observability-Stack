@@ -1,0 +1,29 @@
+## observability/promtail/promtail-config.yml
+
+
+# This YAML file defines the Promtail configuration for collecting logs and sending them to Loki.
+#
+# Key sections:
+# - server: Configures the HTTP and gRPC servers Promtail exposes (for health, metrics).
+# - positions: Tracks where Promtail left off in log files to avoid duplication.
+# - clients: Defines Loki endpoints where logs should be pushed.
+# - scrape_configs: Specifies which log files to read, with associated labels.
+
+server:
+  http_listen_port: 9080                          # Promtail's HTTP server for metrics and health checks
+  grpc_listen_port: 0                             # Disable gRPC server (not needed unless required by a client)
+
+positions:
+  filename: /tmp/positions.yaml                   # File to track log positions between restarts
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push        # URL to push logs to Loki instance
+
+scrape_configs:
+  - job_name: system                              # Descriptive name for this scrape job
+    static_configs:
+      - targets:
+          - localhost                             # Placeholder target (required but unused for file scraping)
+        labels:
+          job: varlogs                            # Logical job label (used in Grafana, Prometheus, etc.)
+          __path__: /logs/*.log                   # Path to log files to be collected

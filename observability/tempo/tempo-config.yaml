@@ -1,0 +1,39 @@
+## observability/tempo/tempo-config.yaml
+
+
+# This YAML file defines the configuration for Tempo, a distributed tracing backend.
+#
+# Key sections:
+# - server: Sets up HTTP and gRPC ports for Tempo's APIs.
+# - distributor: Receives trace data in OTLP format over HTTP/gRPC.
+# - compactor: Manages retention and compaction of trace blocks.
+# - storage: Defines backend and local path where trace data is stored.
+# - overrides: Customizes runtime behavior like enabling metric generation from traces.
+
+server:
+  http_listen_port: 3200                          # Tempo's HTTP server for health checks and metrics
+  grpc_listen_port: 9095                          # Tempo's gRPC server (used by clients to send trace data)
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:                                     # Enable OTLP over gRPC for trace ingestion
+        http:                                     # Enable OTLP over HTTP for trace ingestion
+
+compactor:
+  compaction:
+    block_retention: 48h                          # Retain trace blocks for 48 hours before deletion
+
+ingester: {}                                      # No WAL config needed in recent versions
+
+storage:
+  trace:
+    backend: local                                # Use local filesystem for storing trace data
+    local:
+      path: /tmp/tempo/blocks                     # Filesystem path where Tempo stores trace blocks
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics]  # Enable processors to generate metrics from traces for observability

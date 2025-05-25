@@ -1,0 +1,25 @@
+## observability/grafana/provisioning/dashboards/dashboard.yml
+
+
+# This YAML file tells Grafana how to load and manage dashboards from JSON files on startup.
+#
+# Key structure:
+# - apiVersion: Version of the provisioning API (currently always 1).
+# - providers: A list of dashboard sources to load into Grafana.
+#   - name: Internal name of the provider block (can be anything, e.g., 'default').
+#   - folder: Grafana folder where the dashboards will be placed ('' = General folder).
+#   - type: Method for loading dashboards ('file' = from local JSON files).
+#   - disableDeletion: Prevent dashboards from being deleted in the UI (false = allow deletion).
+#   - editable: Whether dashboards are editable in the Grafana UI.
+#   - options.path: Filesystem path (inside the container) where dashboard JSON files are located.
+
+apiVersion: 1
+
+providers:
+  - name: 'default'                            # Unique name for this dashboard provider
+    folder: ''                                 # Leave blank to load dashboards into the default "General" folder
+    type: file                                 # Indicates we are loading from local files
+    disableDeletion: false                     # Allow dashboards to be deleted through the UI
+    editable: true                             # Dashboards can be modified via the Grafana frontend
+    options:
+      path: /etc/grafana/provisioning/dashboards  # Path inside the container where JSON files are mounted

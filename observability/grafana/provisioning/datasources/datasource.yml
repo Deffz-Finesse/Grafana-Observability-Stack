@@ -1,0 +1,55 @@
+## observability/grafana/provisioning/datasources/datasource.yml
+
+
+# This YAML file configures Grafana data sources that feed dashboards and panels.
+#
+# Key structure:
+# - datasources: A list of integrations Grafana will connect to on startup.
+#   - name: Display name for the data source.
+#   - type: Plugin/integration type (e.g., prometheus, loki, tempo, postgres).
+#   - access: 'proxy' (recommended) or 'direct'.
+#   - url: The internal URL to reach the service (e.g., http://service:port).
+#   - orgId: The organization ID this data source belongs to (usually 1 for default).
+#   - isDefault: Whether this is the default data source for dashboards.
+#   - editable: Whether this data source can be changed in the Grafana UI.
+#   - jsonData: Additional config like version or SSL mode.
+#   - secureJsonData: Encrypted secrets like passwords or API keys.
+
+datasources:
+  # Primary metrics source: Prometheus scrapes all exporters
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://prometheus:9090
+    isDefault: true
+    version: 1
+    editable: true
+
+  # Logs source: Loki collects and stores logs from Promtail
+  - name: Loki
+    uid: Loki
+    type: loki
+    access: proxy
+    orgId: 1
+    url: http://loki:3100
+    version: 1
+    editable: true
+
+  # Tracing source: Tempo collects distributed traces
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo:3200
+    version: 1
+    editable: true
+    jsonData:
+      httpMethod: GET                    # Required for some Tempo versions to support search
+      tracesToLogsV2:
+        datasourceUid: 'Loki'           # Enable trace-to-log linking
+        spanStartTimeShift: '5m'        # Look 5 minutes before span start
+        spanEndTimeShift: '5m'          # Look 5 minutes after span end
+        tags:
+          - key: 'container'
+            value: 'tempo'              # Adjust based on your logging context

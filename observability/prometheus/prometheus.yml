@@ -1,0 +1,36 @@
+## observability/prometheus/prometheus.yml
+
+
+# This YAML file defines Prometheus configuration for scraping metrics across the system.
+#
+# Key structure:
+# - global: Set the scrape interval and rule evaluation frequency globally.
+# - scrape_configs: Each job here describes a system/exporter Prometheus should scrape:
+#   - job_name: Human-readable name of the job.
+#   - static_configs: List of host:port targets to scrape.
+
+global:
+  scrape_interval: 5s        # Default scrape frequency for all targets
+  evaluation_interval: 5s    # Frequency for evaluating alert rules
+
+scrape_configs:
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Loki — exposes internal metrics for its performance and operation
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']                # Loki metrics endpoint
+
+  # Promtail — exposes internal metrics and health status
+  - job_name: 'promtail'
+    static_configs:
+      - targets: ['promtail:9080']            # Promtail metrics endpoint
+
+  # Tempo — exposes internal metrics (used for Grafana dashboards and alerting)
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']  # Tempo metrics are exposed on the HTTP port (default 3200)

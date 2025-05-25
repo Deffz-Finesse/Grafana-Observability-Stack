@@ -1,0 +1,108 @@
+services:
+
+  # Prometheus metrics server — scrapes metrics from exporters and services
+  prometheus:
+    image: prom/prometheus:latest                                                     # Prometheus image
+    container_name: prometheus                                                        # Container name
+    restart: always                                                                   # Restart automatically on failure or reboot
+    ports:
+      - "${PROMETHEUS_PORT}:9090"                                                     # Expose Prometheus web UI on host port 9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml                                  # Use config file path
+    volumes:
+      - prometheus-storage:/prometheus                                                # Persist time-series data
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro   # Mount Prometheus config file (read-only)
+    networks:
+      - backend
+
+  # Grafana service configuration (dashboard and observability UI)
+  grafana:
+    image: grafana/grafana:latest                                                                 # Grafana image
+    container_name: grafana                                                                       # Container name
+    restart: always                                                                               # Restart automatically on failure or reboot
+    ports:
+      - "${GRAFANA_PORT}:3000"                                                                    # Expose Grafana on host port 3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}                                                    # Admin username
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}                                            # Admin password
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor,metricsSummary                                    # Enable experimental features (e.g. Tempo tracing)
+    volumes:
+      - grafana-storage:/var/lib/grafana                                                          # Persist Grafana dashboards and settings
+      - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources    # Auto-load data sources
+      - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards      # Auto-load dashboard definitions
+    depends_on:
+      - prometheus                                                                                # Ensure Prometheus is running before Grafana starts
+    networks:
+      - backend
+
+  # Loki — stores logs and serves them via an HTTP API for Grafana to visualize
+  loki:
+    image: grafana/loki:latest                                         # Loki image
+    container_name: loki                                              # Container name
+    ports:
+      - "${LOKI_PORT}:3100"                                           # Expose Loki on specified port for querying logs
+    command:
+      -config.file=/etc/loki/config.yml -config.expand-env=true       # Load Loki config file
+    volumes:
+      - loki-storage:/loki                                            # Persist Loki log data
+      - ./observability/loki/loki-config.yml:/etc/loki/config.yml     # Mount Loki config file
+    networks:
+      - backend                                                       # Attach to backend network for service discovery
+
+  # Promtail — collects log files and ships them to Loki
+  promtail:
+    image: grafana/promtail:latest                                              # Promtail image
+    container_name: promtail                                                    # Container name
+    restart: unless-stopped                                                     # Restart unless explicitly stopped
+    command:
+      -config.file=/etc/promtail/config.yml                                     # Specify Promtail config file path
+    volumes:
+      - ./observability/promtail/promtail-config.yml:/etc/promtail/config.yml   # Mount Promtail config file
+      - ./logs:/logs                                                            # Mount host log directory for scraping
+    depends_on:
+      - loki                                                                    # Ensure Loki is up before Promtail starts
+    networks:
+      - backend                                                                 # Use same network for access to Loki
+
+  # tempo-volume-init — init container to fix volume permissions for Tempo
+  # This service ensures the Docker volume used by Tempo is owned by the correct UID (10001)
+  # so that Tempo can write to /tmp/tempo/blocks without permission errors.
+  tempo-volume-init:
+    image: busybox:latest
+    container_name: tempo-volume-init
+    command: chown -R 10001:10001 /data                                         # Fix ownership to match Tempo's user
+    volumes:
+      - tempo-data:/data                                                       # Mount the same volume used by Tempo
+    networks:
+      - backend
+    restart: "no"                                                               # Run once, then exit
+
+  # Tempo — distributed tracing backend
+  tempo:
+    image: grafana/tempo:latest                                                 # Tempo image
+    container_name: tempo                                                       # Container name
+    restart: always                                                             # Restart on failure
+    ports:
+      - "${TEMPO_HTTP_PORT}:3200"                                               # HTTP port for metrics and health (default 3200)
+      - "${TEMPO_GRPC_PORT}:9095"                                               # gRPC port for receiving trace data (default 9095)
+    command:
+      -config.file=/etc/tempo/config.yaml                                       # Load Tempo config
+    volumes:
+      - ./observability/tempo/tempo-config.yaml:/etc/tempo/config.yaml          # Mount Tempo config file
+      - tempo-data:/tmp/tempo                                                   # Volume for storing trace data
+    depends_on:
+      - tempo-volume-init                                                       # Ensure volume permissions are set before Tempo starts
+    networks:
+      - backend                                                                 # Attach to backend for service discovery
+
+# Define named volumes used by services for persistent storage
+volumes:
+  prometheus-storage:                                                   # Volume for Prometheus metrics data
+  grafana-storage:                                                      # Volume for Grafana dashboard/config data
+  loki-storage:                                                         # Volume for Loki log data
+  tempo-data:                                                           # Volume for Tempo traces
+
+# Define the network used to allow inter-container communication
+networks:
+  backend:                                                              # User-defined bridge network for service isolation and DNS resolution
+    driver: bridge
