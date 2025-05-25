@@ -247,7 +247,6 @@ Licensed under the MIT License. See the [LICENSE](LICENSE) file.
 - [Prometheus Querying](https://prometheus.io/docs/prometheus/latest/querying/examples/)
 - [Loki LogQL](https://grafana.com/docs/loki/latest/logql/)
 - [Tempo Tracing Guide](https://grafana.com/docs/tempo/latest/)
-- [Observability Best Practices](https://grafana.com/blog/2024/01/09/observability-best-practices/)
 
 ---
 
