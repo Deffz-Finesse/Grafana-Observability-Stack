@@ -74,7 +74,7 @@ graph TB
 ### 1. Clone and Setup
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Deffz-Finesse/Grafana-Observability-Stack.git
 cd Grafana-Observability-Stack
 
 # Create required directories
