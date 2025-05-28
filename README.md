@@ -74,7 +74,7 @@ graph TB
 ### 1. Clone and Setup
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Deffz-Finesse/Grafana-Observability-Stack.git
 cd Grafana-Observability-Stack
 
 # Create required directories
@@ -133,8 +133,8 @@ docker-compose logs -f     # View logs if needed
 ```promql
 # Example Prometheus queries
 up                                  # Service health
-rate(http_requests_total[5m])      # Request rate
-prometheus_tsdb_head_series        # Metric count
+rate(http_requests_total[5m])       # Request rate
+prometheus_tsdb_head_series         # Metric count
 ```
 
 ### Querying Logs
@@ -142,7 +142,7 @@ prometheus_tsdb_head_series        # Metric count
 ```logql
 {container="app"}                    # Logs from app container
 {level="error"}                      # Error-level logs
-{service="api"} |= "timeout"        # API logs containing "timeout"
+{service="api"} |= "timeout"         # API logs containing "timeout"
 ```
 
 ### Exploring Traces
@@ -247,7 +247,6 @@ Licensed under the MIT License. See the [LICENSE](LICENSE) file.
 - [Prometheus Querying](https://prometheus.io/docs/prometheus/latest/querying/examples/)
 - [Loki LogQL](https://grafana.com/docs/loki/latest/logql/)
 - [Tempo Tracing Guide](https://grafana.com/docs/tempo/latest/)
-- [Observability Best Practices](https://grafana.com/blog/2024/01/09/observability-best-practices/)
 
 ---
 
