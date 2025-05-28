@@ -1,0 +1,23 @@
+# OpenTelemetry Core
+opentelemetry-api>=1.21.0
+opentelemetry-sdk>=1.21.0
+
+# OpenTelemetry Instrumentations
+opentelemetry-instrumentation>=0.42b0
+opentelemetry-instrumentation-redis>=0.42b0
+opentelemetry-instrumentation-logging>=0.42b0
+opentelemetry-instrumentation-sqlite3>=0.42b0
+opentelemetry-instrumentation-requests>=0.42b0
+opentelemetry-instrumentation-psycopg2>=0.42b0
+
+# OpenTelemetry Exporters
+opentelemetry-exporter-otlp-proto-grpc>=1.21.0
+
+# Logging Dependencies
+colorlog>=6.7.0
+python-dotenv>=1.0.0
+
+# Optional: Database drivers (uncomment if needed)
+# redis>=4.5.0
+# psycopg2-binary>=2.9.0
+# requests>=2.31.0 

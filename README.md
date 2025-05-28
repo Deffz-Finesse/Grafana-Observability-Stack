@@ -16,6 +16,7 @@ This project offers a full-stack monitoring and observability solution using ind
 - **🕸️ Service Graphs**: Automatic service topology visualization from traces
 - **🌐 Node Graphs**: Interactive network topology views in Grafana
 - **📡 OpenTelemetry Integration**: Full OTLP support with Python instrumentation library
+- **📋 Structured Logging**: Production-ready logging with trace correlation and rotation
 
 ### Key Benefits
 
@@ -82,6 +83,7 @@ graph TB
 
 - **Docker** (v20.10+)
 - **Docker Compose** (v2.0+)
+- **Python** (v3.8+) - for using the included instrumentation libraries
 - **4GB+ RAM** available
 - **Ports available**: 3000, 3100, 3200, 4317, 4318, 9090, 9095
 
@@ -93,6 +95,9 @@ cd Grafana-Observability-Stack
 
 # Create required directories
 mkdir -p logs
+
+# Install Python dependencies (optional - for using lib modules)
+pip install -r requirements.txt
 ```
 
 ### 2. Environment Variables
@@ -225,20 +230,32 @@ Send traces to:
 
 #### OpenTelemetry Integration
 
-Use the provided Python library (`lib/otel.py`) for automatic instrumentation:
+**Installation:**
+
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+```
+
+**Usage:**
+
+Use the provided Python libraries for automatic instrumentation and structured logging:
 
 ```python
 from lib.otel import setup_otel, get_tracer
+from lib.logger import get_logger
 
 # Initialize OpenTelemetry (call once at startup)
 setup_otel()
 
-# Get a tracer for your service
+# Get a tracer and logger for your service
 tracer = get_tracer("my-service")
+logger = get_logger("my-service")
 
-# Create spans
+# Create spans with correlated logging
 with tracer.start_as_current_span("operation-name") as span:
     span.set_attribute("user.id", "12345")
+    logger.info("Processing user request", extra={"user_id": "12345"})
     # Your application logic here
 ```
 
@@ -250,8 +267,16 @@ with tracer.start_as_current_span("operation-name") as span:
 
 **Environment Variables:**
 ```bash
+# OpenTelemetry Configuration
 export OTEL_SERVICE_NAME="my-service"
 export OTEL_EXPORTER_OTLP_ENDPOINT="localhost:4317"
+
+# Logging Configuration
+export LOG_LEVEL="INFO"
+export LOG_FILE="logs/app.log"
+export ENABLE_CONSOLE_LOG="true"
+export ENABLE_FILE_LOG="true"
+export ENV="development"
 ```
 
 ## 📁 Project Structure
@@ -259,7 +284,9 @@ export OTEL_EXPORTER_OTLP_ENDPOINT="localhost:4317"
 ```
 .
 ├── docker-compose.yml                     # Service orchestration
+├── requirements.txt                       # Python dependencies for lib modules
 ├── lib/
+│   ├── logger.py                          # Structured logging with OpenTelemetry integration
 │   └── otel.py                            # OpenTelemetry Python instrumentation
 ├── observability/                         # Configuration files
 │   ├── grafana/
@@ -333,6 +360,47 @@ Service graph metrics are scraped via `observability/prometheus/prometheus.yml`:
   metrics_path: /metrics
 ```
 
+### Structured Logging Configuration
+
+The logging library (`lib/logger.py`) supports flexible configuration via environment variables:
+
+```bash
+# Logging behavior
+LOG_LEVEL=INFO                    # DEBUG, INFO, WARNING, ERROR, CRITICAL
+LOG_FILE=logs/app.log            # Path to log file
+ENABLE_CONSOLE_LOG=true          # Enable colored console output
+ENABLE_FILE_LOG=true             # Enable file logging with rotation
+ENV=development                  # Environment (affects log formatting)
+
+# File rotation settings (hardcoded in logger.py)
+# - Max file size: 5MB
+# - Backup count: 5 files
+# - Total log retention: ~25MB
+```
+
+**Usage Example:**
+
+```python
+from lib.logger import get_logger
+
+# Get a logger instance
+logger = get_logger("my-component")
+
+# Log with different levels
+logger.debug("Detailed debugging information")
+logger.info("General information about program execution")
+logger.warning("Something unexpected happened")
+logger.error("A serious error occurred", extra={"error_code": 500})
+logger.critical("System is unusable")
+
+# Structured logging with extra fields
+logger.info("User login", extra={
+    "user_id": "12345",
+    "ip_address": "192.168.1.1",
+    "user_agent": "Mozilla/5.0..."
+})
+```
+
 ### Retention Settings
 
 **Prometheus** (`prometheus.yml`):
@@ -383,13 +451,24 @@ Individual span performance metrics:
 
 ### OpenTelemetry Features
 
-The included Python library provides:
+The included Python libraries provide:
 
 - **Automatic Instrumentation**: Popular libraries auto-traced
 - **Manual Instrumentation**: Custom span creation and attributes
 - **Context Propagation**: Distributed trace correlation
 - **Resource Detection**: Service name and version tagging
 - **Batch Export**: Efficient span batching to Tempo
+
+### Structured Logging Features
+
+The included logging library (`lib/logger.py`) provides:
+
+- **Colored Console Output**: Environment-aware colored logging for development
+- **File Rotation**: Automatic log file rotation with configurable size limits
+- **Millisecond Precision**: High-precision timestamps for debugging
+- **OpenTelemetry Integration**: Automatic trace ID injection into log entries
+- **Environment Configuration**: Flexible logging behavior via environment variables
+- **Multiple Handlers**: Simultaneous console and file logging with different formats
 
 ### Correlation Features
 
