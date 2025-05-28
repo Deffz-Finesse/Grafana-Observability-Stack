@@ -26,14 +26,26 @@ common:
 
 schema_config:
   configs:
-    - from: 2020-05-15                             # Apply this schema starting from this date
-      store: tsdb                                  # Use TSDB (time-series database) to store logs
-      object_store: filesystem                     # Store logs on the local file system
-      schema: v11                                  # Schema version used by Loki
+    - from: 2020-05-15                            # Old schema for historical logs
+      store: tsdb
+      object_store: filesystem
+      schema: v11
       index:
-        prefix: index_                             # Prefix for index files
-        period: 24h                                # Rotate index every 24 hours
+        prefix: index_
+        period: 24h
+    - from: 2025-05-25                            # New schema to support OTLP and structured metadata
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
 
 storage_config:
   filesystem:
     directory: /tmp/loki/chunks                   # Directory to store chunked log data
+
+limits_config:
+  volume_enabled: true                            # Enable log volume endpoints
+  volume_max_series: 1000                         # Max number of series in volume response
+  allow_structured_metadata: true                 # Enable structured metadata (requires schema v13)

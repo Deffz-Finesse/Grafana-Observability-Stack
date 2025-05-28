@@ -18,6 +18,7 @@
 datasources:
   # Primary metrics source: Prometheus scrapes all exporters
   - name: Prometheus
+    uid: Prometheus
     type: prometheus
     access: proxy
     orgId: 1
@@ -34,10 +35,11 @@ datasources:
     orgId: 1
     url: http://loki:3100
     version: 1
-    editable: true
+    editable: true    
 
   # Tracing source: Tempo collects distributed traces
   - name: Tempo
+    uid: Tempo
     type: tempo
     access: proxy
     orgId: 1
@@ -45,11 +47,17 @@ datasources:
     version: 1
     editable: true
     jsonData:
-      httpMethod: GET                    # Required for some Tempo versions to support search
+      httpMethod: GET
+      streamingEnabled:
+        search: true
       tracesToLogsV2:
-        datasourceUid: 'Loki'           # Enable trace-to-log linking
-        spanStartTimeShift: '5m'        # Look 5 minutes before span start
-        spanEndTimeShift: '5m'          # Look 5 minutes after span end
+        datasourceUid: 'Loki'
+        spanStartTimeShift: '5m'
+        spanEndTimeShift: '5m'
         tags:
           - key: 'container'
-            value: 'tempo'              # Adjust based on your logging context
+            value: 'tempo'
+      serviceMap:
+        datasourceUid: 'Prometheus'
+      nodeGraph:
+        enabled: true

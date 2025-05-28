@@ -16,10 +16,10 @@
 apiVersion: 1
 
 providers:
-  - name: 'default'                            # Unique name for this dashboard provider
-    folder: ''                                 # Leave blank to load dashboards into the default "General" folder
-    type: file                                 # Indicates we are loading from local files
-    disableDeletion: false                     # Allow dashboards to be deleted through the UI
-    editable: true                             # Dashboards can be modified via the Grafana frontend
+  - name: 'default'                               # Unique name for this dashboard provider
+    folder: ''                                    # Leave blank to load dashboards into the default "General" folder
+    type: file                                    # Indicates we are loading from local files
+    disableDeletion: false                        # Allow dashboards to be deleted through the UI
+    editable: true                                # Dashboards can be modified via the Grafana frontend
     options:
       path: /etc/grafana/provisioning/dashboards  # Path inside the container where JSON files are mounted

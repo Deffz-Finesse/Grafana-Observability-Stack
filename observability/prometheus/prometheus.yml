@@ -20,6 +20,11 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+  # Redis Exporter — provides Redis metrics for Prometheus
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
   # Loki — exposes internal metrics for its performance and operation
   - job_name: 'loki'
     static_configs:
@@ -33,4 +38,10 @@ scrape_configs:
   # Tempo — exposes internal metrics (used for Grafana dashboards and alerting)
   - job_name: 'tempo'
     static_configs:
-      - targets: ['tempo:3200']  # Tempo metrics are exposed on the HTTP port (default 3200)
+      - targets: ['tempo:3200']               # Tempo internal metrics endpoint
+
+  # Tempo Metrics Generator — provides span-metrics and service-graph metrics
+  - job_name: 'tempo-metrics-generator'
+    static_configs:
+      - targets: ['tempo:3200']
+    metrics_path: /metrics                    # Required for service graph and span metrics

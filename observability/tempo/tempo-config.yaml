@@ -11,29 +11,45 @@
 # - overrides: Customizes runtime behavior like enabling metric generation from traces.
 
 server:
-  http_listen_port: 3200                          # Tempo's HTTP server for health checks and metrics
-  grpc_listen_port: 9095                          # Tempo's gRPC server (used by clients to send trace data)
+  http_listen_port: 3200
+  grpc_listen_port: 9095
 
 distributor:
   receivers:
     otlp:
       protocols:
-        grpc:                                     # Enable OTLP over gRPC for trace ingestion
-        http:                                     # Enable OTLP over HTTP for trace ingestion
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester: {}
 
 compactor:
   compaction:
-    block_retention: 48h                          # Retain trace blocks for 48 hours before deletion
-
-ingester: {}                                      # No WAL config needed in recent versions
+    block_retention: 48h
 
 storage:
   trace:
-    backend: local                                # Use local filesystem for storing trace data
+    backend: local
     local:
-      path: /tmp/tempo/blocks                     # Filesystem path where Tempo stores trace blocks
+      path: /tmp/tempo/blocks
+
+metrics_generator:
+  storage:
+    path: /tmp/tempo/generator-wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+
+  traces_storage:
+    path: /tmp/tempo/generator-wal/traces
+
+  registry:
+    collection_interval: 15s
+    external_labels:
+      source: tempo
 
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics]  # Enable processors to generate metrics from traces for observability
+      processors: [service-graphs, span-metrics, local-blocks]
